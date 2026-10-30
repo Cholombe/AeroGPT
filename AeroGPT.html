@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>AeroGPT</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color: #222;
+    background: #c5ccd3;
+    -webkit-text-size-adjust: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  #app {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
+    background: #ffffff;
+  }
+
+  /* ---------- NAVBAR ---------- */
+  .navbar {
+    position: relative;
+    height: 44px;
+    -webkit-flex-shrink: 0; flex-shrink: 0;
+    background: -webkit-linear-gradient(top, #8aa3bf 0%, #5d7a9a 50%, #4d6888 51%, #3d5878 100%);
+    background: linear-gradient(to bottom, #8aa3bf 0%, #5d7a9a 50%, #4d6888 51%, #3d5878 100%);
+    border-bottom: 1px solid #1e3350;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 1px 0 rgba(0,0,0,0.15);
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+    padding: 0 8px;
+    color: #ffffff;
+    z-index: 10;
+  }
+  .navbar h1 {
+    -webkit-flex: 1; flex: 1;
+    margin: 0; text-align: center;
+    font-size: 17px; font-weight: bold;
+    letter-spacing: -0.2px;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.45);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nav-button {
+    min-width: 50px;
+    height: 29px;
+    padding: 0 10px;
+    font-family: inherit;
+    font-size: 12px; font-weight: bold;
+    color: #1e3350;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    border: 1px solid #4a6a8a;
+    border-radius: 5px;
+    background: -webkit-linear-gradient(top, #e5edf5 0%, #b9c8d8 49%, #a3b6cb 50%, #8fa6bd 100%);
+    background: linear-gradient(to bottom, #e5edf5 0%, #b9c8d8 49%, #a3b6cb 50%, #8fa6bd 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    -webkit-flex-shrink: 0; flex-shrink: 0;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    -webkit-user-select: none;
+    user-select: none;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+    -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
+  }
+  .nav-button:active {
+    background: -webkit-linear-gradient(top, #8fa6bd 0%, #a3b6cb 50%, #b9c8d8 51%, #e5edf5 100%);
+    background: linear-gradient(to bottom, #8fa6bd 0%, #a3b6cb 50%, #b9c8d8 51%, #e5edf5 100%);
+  }
+  .nav-button.primary {
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.35);
+    border: 1px solid #14457e;
+    background: -webkit-linear-gradient(top, #6aaff0 0%, #2f7bc9 49%, #2468b0 50%, #1c5aa0 100%);
+    background: linear-gradient(to bottom, #6aaff0 0%, #2f7bc9 49%, #2468b0 50%, #1c5aa0 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+  .nav-button.primary:active {
+    background: -webkit-linear-gradient(top, #1c5aa0 0%, #2468b0 50%, #2f7bc9 51%, #6aaff0 100%);
+    background: linear-gradient(to bottom, #1c5aa0 0%, #2468b0 50%, #2f7bc9 51%, #6aaff0 100%);
+  }
+  .nav-spacer { width: 50px; -webkit-flex-shrink: 0; flex-shrink: 0; }
+
+  /* ---------- MODEL BAR ---------- */
+  .model-bar {
+    -webkit-flex-shrink: 0; flex-shrink: 0;
+    height: 36px;
+    background: -webkit-linear-gradient(top, #e8ecf0 0%, #c8d0da 100%);
+    background: linear-gradient(to bottom, #e8ecf0 0%, #c8d0da 100%);
+    border-bottom: 1px solid #8b949e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+    padding: 0 10px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    z-index: 9;
+  }
+  .model-bar-label {
+    -webkit-flex: 1; flex: 1;
+    font-size: 13px; font-weight: bold; color: #2a3540;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .model-bar-cat {
+    font-size: 10px; font-weight: bold; color: #fff;
+    padding: 2px 7px; border-radius: 9px;
+    margin-right: 8px;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .model-bar-arrow { font-size: 10px; color: #5a6570; }
+
+  .cat-little   { background: #3b9c3b; }
+  .cat-low      { background: #5a9c3b; }
+  .cat-mid      { background: #c08a2a; }
+  .cat-high     { background: #c05a2a; }
+  .cat-extreme  { background: #b32d2d; }
+
+  /* ---------- CHAT AREA ---------- */
+  .messages {
+    -webkit-box-flex: 1; -webkit-flex: 1; flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 8px 16px;
+    background: #ffffff;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
+    gap: 6px;
+  }
+  .message {
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
+    max-width: 85%;
+  }
+  .message.user { -webkit-align-self: flex-end; align-self: flex-end; -webkit-box-align: end; align-items: flex-end; }
+  .message.bot  { -webkit-align-self: flex-start; align-self: flex-start; -webkit-box-align: start; align-items: flex-start; }
+  .bubble {
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 14px; line-height: 1.35;
+    word-wrap: break-word;
+    -webkit-user-select: text; user-select: text;
+  }
+  .message.user .bubble {
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.18);
+    border: 1px solid #2b6eac;
+    border-bottom-right-radius: 4px;
+    background: -webkit-linear-gradient(top, #6fb5f0 0%, #3b86d6 100%);
+    background: linear-gradient(to bottom, #6fb5f0 0%, #3b86d6 100%);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.12);
+  }
+  .message.bot .bubble {
+    color: #1e1e1e;
+    text-shadow: 0 1px 0 #ffffff;
+    border: 1px solid #b6b9c0;
+    border-bottom-left-radius: 4px;
+    background: -webkit-linear-gradient(top, #f1f2f5 0%, #dbdde2 100%);
+    background: linear-gradient(to bottom, #f1f2f5 0%, #dbdde2 100%);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+  }
+
+  /* Markdown styles */
+  .bubble p { margin: 0 0 6px 0; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble strong { font-weight: bold; }
+  .bubble em { font-style: italic; }
+  .bubble h1, .bubble h2, .bubble h3 { margin: 8px 0 4px 0; font-weight: bold; }
+  .bubble h1 { font-size: 16px; }
+  .bubble h2 { font-size: 15px; }
+  .bubble h3 { font-size: 14px; }
+  .bubble ul, .bubble ol { margin: 4px 0 8px 0; padding-left: 20px; }
+  .bubble li { margin-bottom: 2px; }
+  .bubble code {
+    font-family: monospace;
+    background: rgba(0,0,0,0.08);
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
+  .message.user .bubble code { background: rgba(0,0,0,0.2); }
+
+  .meta {
+    font-size: 10px;
+    color: #8a9099;
+    margin: 3px 6px 0;
+    text-shadow: 0 1px 0 #ffffff;
+  }
+  .message.user .meta { text-align: right; }
+
+  /* ---------- INPUT BAR ---------- */
+  .input-bar {
+    -webkit-flex-shrink: 0; flex-shrink: 0;
+    padding: 6px;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-align: end; -webkit-align-items: flex-end; align-items: flex-end;
+    gap: 6px;
+    border-top: 1px solid #6f7a86;
+    background: -webkit-linear-gradient(top, #d5dbe2 0%, #b0b8c2 100%);
+    background: linear-gradient(to bottom, #d5dbe2 0%, #b0b8c2 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+    z-index: 10;
+  }
+  #messageInput {
+    -webkit-box-flex: 1; -webkit-flex: 1; flex: 1;
+    height: 38px; min-height: 38px; max-height: 90px;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.35;
+    color: #1a1a1a;
+    background: #ffffff;
+    border: 1px solid #7f8994;
+    border-radius: 19px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.18);
+    resize: none;
+    outline: none;
+    -webkit-appearance: none;
+    -webkit-user-select: text; user-select: text;
+  }
+  #messageInput:focus { border-color: #3b86d6; }
+  #sendButton {
+    -webkit-flex-shrink: 0; flex-shrink: 0;
+    height: 38px;
+    padding: 0 16px;
+    font-family: inherit;
+    font-size: 14px; font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.3);
+    border: 1px solid #14457e;
+    border-radius: 8px;
+    background: -webkit-linear-gradient(top, #6aaff0 0%, #2f7bc9 49%, #2468b0 50%, #1c5aa0 100%);
+    background: linear-gradient(to bottom, #6aaff0 0%, #2f7bc9 49%, #2468b0 50%, #1c5aa0 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  #sendButton:active {
+    background: -webkit-linear-gradient(top, #1c5aa0 0%, #2468b0 50%, #2f7bc9 51%, #6aaff0 100%);
+    background: linear-gradient(to bottom, #1c5aa0 0%, #2468b0 50%, #2f7bc9 51%, #6aaff0 100%);
+  }
+  #sendButton[disabled] { opacity: 0.55; }
+
+  /* ---------- OVERLAYS (HISTORY & SETTINGS) ---------- */
+  .overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 100;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
+    background: #c5ccd3;
+    -webkit-transition: -webkit-transform 0.28s ease-out;
+    transition: transform 0.28s ease-out;
+    -webkit-user-select: none; user-select: none;
+  }
+  
+  /* Settings slides UP */
+  #settingsOverlay {
+    -webkit-transform: translateY(100%);
+    transform: translateY(100%);
+  }
+  #settingsOverlay.open {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+  }
+
+  /* History slides LEFT */
+  #historyOverlay {
+    -webkit-transform: translateX(-100%);
+    transform: translateX(-100%);
+  }
+  #historyOverlay.open {
+    -webkit-transform: translateX(0);
+    transform: translateX(0);
+  }
+
+  .overlay-content {
+    -webkit-box-flex: 1; -webkit-flex: 1; flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 18px 10px 40px;
+    background: #c5ccd3;
+    background-image: -webkit-repeating-linear-gradient(
+      top, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px,
+      rgba(0,0,0,0.04) 1px, rgba(0,0,0,0.04) 2px
+    );
+  }
+
+  /* ---------- SETTINGS STYLES ---------- */
+  .group-label {
+    margin: 18px 12px 6px;
+    font-size: 12px; font-weight: bold; color: #556070;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .group-label:first-child { margin-top: 4px; }
+  .group {
+    background: #ffffff;
+    border: 1px solid #a0a5aa;
+    border-radius: 9px;
+    overflow: hidden;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .group input {
+    display: block;
+    width: 100%;
+    padding: 12px 12px;
+    font-family: inherit;
+    font-size: 15px;
+    color: #1a1a1a;
+    background: transparent;
+    border: none;
+    outline: none;
+    -webkit-appearance: none;
+    -webkit-user-select: text; user-select: text;
+  }
+  .group input::-webkit-input-placeholder { color: #9aa0a8; }
+  .hint {
+    margin: 16px 12px 0;
+    font-size: 12px; line-height: 1.4;
+    color: #556070;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  /* ---------- HISTORY STYLES ---------- */
+  .history-row {
+    padding: 12px;
+    border-bottom: 1px solid #e0e3e7;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+    cursor: pointer;
+    background: #ffffff;
+  }
+  .history-row:active { background: #e0e8f0; }
+  .history-row-title {
+    -webkit-flex: 1; flex: 1;
+    font-size: 15px; color: #1e1e1e;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .history-delete-btn {
+    background: #e86060;
+    color: white;
+    border: 1px solid #7a1a1a;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  .history-empty {
+    padding: 30px 12px; text-align: center;
+    font-size: 13px; color: #6a7078;
+  }
+
+  /* ---------- MODEL PICKER ---------- */
+  .model-picker {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 90;
+    background: rgba(0,0,0,0.35);
+    display: none;
+  }
+  .model-picker.open { display: block; }
+  .model-picker-panel {
+    position: absolute; top: 80px; left: 8px; right: 8px;
+    max-height: 70%;
+    background: #ffffff;
+    border: 1px solid #7f8994;
+    border-radius: 9px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    overflow: hidden;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
+  }
+  .model-picker-header {
+    padding: 8px 12px;
+    background: -webkit-linear-gradient(top, #f0f2f5, #d5dbe2);
+    background: linear-gradient(to bottom, #f0f2f5, #d5dbe2);
+    border-bottom: 1px solid #a5a9af;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  }
+  .model-picker-header span {
+    -webkit-flex: 1; flex: 1;
+    font-size: 13px; font-weight: bold; color: #2a3540;
+    text-shadow: 0 1px 0 #fff;
+  }
+  .refresh-btn {
+    font-size: 11px; font-weight: bold; color: #1e5d9e;
+    background: none; border: none; padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  .free-toggle-wrap {
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+    padding: 6px 12px 8px;
+    background: -webkit-linear-gradient(top, #f0f2f5, #e0e4e9);
+    background: linear-gradient(to bottom, #f0f2f5, #e0e4e9);
+    border-bottom: 1px solid #b5bcc4;
+  }
+  .free-toggle-label {
+    -webkit-flex: 1; flex: 1;
+    font-size: 12px; font-weight: bold; color: #2a3540;
+    text-shadow: 0 1px 0 #fff;
+  }
+  .ios-switch {
+    position: relative;
+    width: 51px; height: 31px;
+    border-radius: 16px;
+    border: 1px solid #8b949e;
+    background: #d0d4d9;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+    cursor: pointer;
+    -webkit-transition: background 0.2s;
+    transition: background 0.2s;
+    -webkit-flex-shrink: 0; flex-shrink: 0;
+  }
+  .ios-switch::after {
+    content: "";
+    position: absolute;
+    top: 1px; left: 1px;
+    width: 27px; height: 27px;
+    border-radius: 50%;
+    background: -webkit-linear-gradient(top, #ffffff 0%, #e8ecf0 100%);
+    background: linear-gradient(to bottom, #ffffff 0%, #e8ecf0 100%);
+    border: 1px solid #7f8994;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    -webkit-transition: left 0.2s;
+    transition: left 0.2s;
+  }
+  .ios-switch.on {
+    background: -webkit-linear-gradient(top, #6aaff0, #2f7bc9);
+    background: linear-gradient(to bottom, #6aaff0, #2f7bc9);
+    border-color: #14457e;
+  }
+  .ios-switch.on::after { left: 21px; }
+
+  .model-list {
+    -webkit-box-flex: 1; -webkit-flex: 1; flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .model-row {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e0e3e7;
+    display: -webkit-box; display: -webkit-flex; display: flex;
+    -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+    cursor: pointer;
+  }
+  .model-row:active { background: #e0e8f0; }
+  .model-row.selected { background: #d0e0f0; }
+  .model-row-name {
+    -webkit-flex: 1; flex: 1;
+    font-size: 13px; color: #1e1e1e;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .model-row-id {
+    font-size: 9px; color: #8a9099; display: block;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .model-row-price {
+    font-size: 10px; color: #5a6570; margin-left: 6px;
+    text-align: right; white-space: nowrap;
+  }
+  .model-loading {
+    padding: 30px 12px; text-align: center;
+    font-size: 13px; color: #6a7078;
+  }
+  .model-empty {
+    padding: 30px 16px;
+    text-align: center;
+    font-size: 12px;
+    color: #6a7078;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 320px) {
+    .navbar h1 { font-size: 16px; }
+    #sendButton { padding: 0 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= MAIN APP ================= -->
+<div id="app">
+  <header class="navbar">
+    <button class="nav-button" id="historyBtn" type="button" aria-label="Chat History" style="font-size: 18px; padding-bottom: 2px;">&#9776;</button>
+    <h1>AeroGPT</h1>
+    <button class="nav-button" id="settingsBtn" type="button" aria-label="Settings">&#9881;</button>
+  </header>
+
+  <div class="model-bar" id="modelBar">
+    <span class="model-bar-cat cat-mid" id="currentCat">mid</span>
+    <span class="model-bar-label" id="currentModelLabel">openai/gpt-3.5-turbo</span>
+    <span class="model-bar-arrow">&#9660;</span>
+  </div>
+
+  <main class="messages" id="chatMessages">
+    <!-- Chat renders here -->
+  </main>
+
+  <footer class="input-bar">
+    <textarea id="messageInput" rows="1" placeholder="Message" autocapitalize="sentences"></textarea>
+    <button id="sendButton" type="button">Send</button>
+  </footer>
+</div>
+
+<!-- ================= HISTORY OVERLAY ================= -->
+<div class="overlay" id="historyOverlay">
+  <header class="navbar">
+    <button class="nav-button" id="newChatBtn" type="button" style="font-size: 20px; padding-bottom: 2px;">+</button>
+    <h1>Chats</h1>
+    <button class="nav-button primary" id="historyDone" type="button">Done</button>
+  </header>
+  <div class="overlay-content" id="historyList">
+    <!-- History list renders here -->
+  </div>
+</div>
+
+<!-- ================= SETTINGS OVERLAY ================= -->
+<div class="overlay" id="settingsOverlay">
+  <header class="navbar">
+    <span class="nav-spacer"></span>
+    <h1>Settings</h1>
+    <button class="nav-button primary" id="settingsDone" type="button">Done</button>
+  </header>
+
+  <div class="overlay-content">
+    <div class="group-label">OpenRouter API Key</div>
+    <div class="group">
+      <input type="password" id="apiKeyInput" placeholder="sk-or-v1-..."
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+
+    <div class="group-label">Model</div>
+    <div class="group">
+      <input type="text" id="modelInput" placeholder="openai/gpt-3.5-turbo"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+
+    <p class="hint">
+      Your key is stored only in this browser (localStorage) and is sent directly
+      to openrouter.ai when you send a message. Get a key at openrouter.ai/keys.
+    </p>
+  </div>
+</div>
+
+<!-- ================= MODEL PICKER ================= -->
+<div class="model-picker" id="modelPicker">
+  <div class="model-picker-panel">
+    <div class="model-picker-header">
+      <span>Choose Model</span>
+      <button class="refresh-btn" id="refreshModels" type="button">Refresh</button>
+    </div>
+    <div class="free-toggle-wrap">
+      <span class="free-toggle-label">Show free models only</span>
+      <div class="ios-switch on" id="freeOnlyToggle"></div>
+    </div>
+    <div class="model-list" id="modelList">
+      <div class="model-loading">Loading models&hellip;</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY   = 'openrouter_api_key';
+  var MODEL_KEY     = 'openrouter_model';
+  var FREE_KEY      = 'free_only';
+  
+  // History keys
+  var CHATS_KEY     = 'aerogpt_chats';
+  var CURRENT_ID_KEY= 'aerogpt_current_chat_id';
+
+  var DEFAULT_MODEL = 'openai/gpt-3.5-turbo';
+  var API_URL       = 'https://openrouter.ai/api/v1/chat/completions';
+  var MODELS_URL    = 'https://openrouter.ai/api/v1/models';
+
+  var MODELS_CACHE_KEY  = 'openrouter_models_cache';
+  var MODELS_CACHE_TIME = 'openrouter_models_time';
+  var CACHE_TTL = 3600000;
+
+  /* ---------- DOM ---------- */
+  var chatMessages     = document.getElementById('chatMessages');
+  var messageInput     = document.getElementById('messageInput');
+  var sendButton       = document.getElementById('sendButton');
+  
+  var historyBtn       = document.getElementById('historyBtn');
+  var settingsBtn      = document.getElementById('settingsBtn');
+  
+  var historyOverlay   = document.getElementById('historyOverlay');
+  var historyList      = document.getElementById('historyList');
+  var historyDone      = document.getElementById('historyDone');
+  var newChatBtn       = document.getElementById('newChatBtn');
+  
+  var settingsOverlay  = document.getElementById('settingsOverlay');
+  var settingsDone     = document.getElementById('settingsDone');
+  var apiKeyInput      = document.getElementById('apiKeyInput');
+  var modelInput       = document.getElementById('modelInput');
+
+  var modelBar         = document.getElementById('modelBar');
+  var currentCat       = document.getElementById('currentCat');
+  var currentModelLabel = document.getElementById('currentModelLabel');
+  var modelPicker      = document.getElementById('modelPicker');
+  var modelList        = document.getElementById('modelList');
+  var refreshModels    = document.getElementById('refreshModels');
+  var freeOnlyToggle   = document.getElementById('freeOnlyToggle');
+
+  /* ---------- STATE ---------- */
+  var chats = [];
+  var currentChatId = null;
+
+  try {
+    var savedChats = localStorage.getItem(CHATS_KEY);
+    if (savedChats) chats = JSON.parse(savedChats);
+  } catch(e) { chats = []; }
+  
+  currentChatId = localStorage.getItem(CURRENT_ID_KEY) || null;
+
+  apiKeyInput.value = localStorage.getItem(STORAGE_KEY) || '';
+  modelInput.value  = localStorage.getItem(MODEL_KEY)   || DEFAULT_MODEL;
+
+  /* ---------- SETTINGS & NAV ---------- */
+  apiKeyInput.addEventListener('input', function () {
+    localStorage.setItem(STORAGE_KEY, apiKeyInput.value.trim());
+  });
+  modelInput.addEventListener('input', function () {
+    localStorage.setItem(MODEL_KEY, modelInput.value.trim() || DEFAULT_MODEL);
+  });
+  modelInput.addEventListener('change', function () {
+    updateModelBar(modelInput.value.trim() || DEFAULT_MODEL);
+  });
+
+  settingsBtn.addEventListener('click', function () {
+    settingsOverlay.classList.add('open');
+  });
+  settingsDone.addEventListener('click', function () {
+    settingsOverlay.classList.remove('open');
+  });
+
+  historyBtn.addEventListener('click', function () {
+    renderHistoryList();
+    historyOverlay.classList.add('open');
+  });
+  historyDone.addEventListener('click', function () {
+    historyOverlay.classList.remove('open');
+  });
+
+  /* ---------- CHAT HISTORY LOGIC ---------- */
+  function saveState() {
+    try {
+      localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
+      if (currentChatId) localStorage.setItem(CURRENT_ID_KEY, currentChatId);
+      else localStorage.removeItem(CURRENT_ID_KEY);
+    } catch(e) {}
+  }
+
+  function getCurrentChat() {
+    if (!currentChatId) return null;
+    for (var i = 0; i < chats.length; i++) {
+      if (chats[i].id === currentChatId) return chats[i];
+    }
+    return null;
+  }
+
+  function startNewChat() {
+    var newChat = {
+      id: 'chat_' + Date.now(),
+      title: 'New Chat',
+      messages: []
+    };
+    chats.unshift(newChat);
+    currentChatId = newChat.id;
+    saveState();
+    
+    chatMessages.innerHTML = '';
+    addMessage("Welcome to **AeroGPT**! Tap \u2699 to set your OpenRouter API key, then start chatting.", 'bot', Date.now(), false);
+    
+    historyOverlay.classList.remove('open');
+    messageInput.focus();
+  }
+
+  function loadChat(id) {
+    currentChatId = id;
+    saveState();
+    
+    chatMessages.innerHTML = '';
+    var chat = getCurrentChat();
+    if (chat && chat.messages.length > 0) {
+      for (var i = 0; i < chat.messages.length; i++) {
+        var m = chat.messages[i];
+        addMessage(m.content, m.role === 'user' ? 'user' : 'bot', m.time, false);
+      }
+    } else {
+      addMessage("Welcome to **AeroGPT**! Tap \u2699 to set your OpenRouter API key, then start chatting.", 'bot', Date.now(), false);
+    }
+    
+    historyOverlay.classList.remove('open');
+    setTimeout(scrollToBottom, 100);
+  }
+
+  function deleteChat(id, event) {
+    event.stopPropagation();
+    if (!confirm('Delete this chat?')) return;
+    for (var i = 0; i < chats.length; i++) {
+      if (chats[i].id === id) {
+        chats.splice(i, 1);
+        break;
+      }
+    }
+    if (currentChatId === id) {
+      currentChatId = chats.length > 0 ? chats[0].id : null;
+      if (currentChatId) loadChat(currentChatId);
+      else startNewChat();
+    } else {
+      saveState();
+    }
+    renderHistoryList();
+  }
+
+  function renderHistoryList() {
+    if (chats.length === 0) {
+      historyList.innerHTML = '<div class="history-empty">No chat history yet.</div>';
+      return;
+    }
+    
+    historyList.innerHTML = '';
+    for (var i = 0; i < chats.length; i++) {
+      (function(chat) {
+        var row = document.createElement('div');
+        row.className = 'history-row';
+        if (chat.id === currentChatId) {
+          row.style.background = '#d0e0f0';
+        }
+        
+        var title = document.createElement('div');
+        title.className = 'history-row-title';
+        title.textContent = chat.title;
+        
+        var delBtn = document.createElement('button');
+        delBtn.className = 'history-delete-btn';
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = function(e) { deleteChat(chat.id, e); };
+        
+        row.appendChild(title);
+        row.appendChild(delBtn);
+        row.onclick = function() { loadChat(chat.id); };
+        
+        historyList.appendChild(row);
+      })(chats[i]);
+    }
+  }
+
+  newChatBtn.addEventListener('click', startNewChat);
+
+  /* ---------- MESSAGES & UI ---------- */
+  function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function parseMarkdown(text) {
+    var html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+    html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+
+    var lines = html.split('\n');
+    var inList = false;
+    var listType = '';
+    var result = [];
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) {
+        if (inList) { result.push('</' + listType + '>'); inList = false; }
+        result.push('<br>');
+        continue;
+      }
+      if (line.match(/^[-*]\s/)) {
+        if (!inList || listType !== 'ul') {
+          if (inList) result.push('</' + listType + '>');
+          result.push('<ul>'); inList = true; listType = 'ul';
+        }
+        result.push('<li>' + line.replace(/^[-*]\s/, '') + '</li>');
+      }
+      else if (line.match(/^\d+\.\s/)) {
+        if (!inList || listType !== 'ol') {
+          if (inList) result.push('</' + listType + '>');
+          result.push('<ol>'); inList = true; listType = 'ol';
+        }
+        result.push('<li>' + line.replace(/^\d+\.\s/, '') + '</li>');
+      }
+      else {
+        if (inList) { result.push('</' + listType + '>'); inList = false; }
+        if (line.startsWith('<h')) result.push(line);
+        else result.push('<p>' + line + '</p>');
+      }
+    }
+    if (inList) result.push('</' + listType + '>');
+    return result.join('');
+  }
+
+  function addMessage(text, sender, timestamp, saveToHistory) {
+    var wrap = document.createElement('div');
+    wrap.className = 'message ' + sender;
+    
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = parseMarkdown(text);
+
+    var meta = document.createElement('div');
+    meta.className = 'meta';
+    
+    var t = timestamp || Date.now();
+    meta.setAttribute('data-time', t);
+    
+    wrap.appendChild(bubble);
+    wrap.appendChild(meta);
+    chatMessages.appendChild(wrap);
+    
+    if (saveToHistory !== false) {
+      var chat = getCurrentChat();
+      if (chat) {
+        // Generate title from first user message
+        if (chat.messages.length === 0 && sender === 'user') {
+          chat.title = text.substring(0, 30) + (text.length > 30 ? '...' : '');
+        }
+        chat.messages.push({
+          role: sender === 'user' ? 'user' : 'assistant',
+          content: text,
+          time: t
+        });
+        saveState();
+      }
+    }
+    
+    updateTimestamps();
+    scrollToBottom();
+    return wrap;
+  }
+
+  function addTyping() {
+    var wrap = document.createElement('div');
+    wrap.className = 'message bot';
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = '\u2026';
+    wrap.appendChild(bubble);
+    chatMessages.appendChild(wrap);
+    scrollToBottom();
+    return wrap;
+  }
+
+  function removeNode(node) {
+    if (node && node.parentNode) node.parentNode.removeChild(node);
+  }
+
+  function updateTimestamps() {
+    var metas = document.querySelectorAll('.meta[data-time]');
+    var now = Date.now();
+    for (var i = 0; i < metas.length; i++) {
+      var el = metas[i];
+      var time = parseInt(el.getAttribute('data-time'), 10);
+      if (!time) continue;
+      var diff = Math.floor((now - time) / 1000);
+      if (diff < 60) el.textContent = 'just now';
+      else if (diff < 3600) el.textContent = Math.floor(diff / 60) + 'm ago';
+      else if (diff < 86400) el.textContent = Math.floor(diff / 3600) + 'h ago';
+      else el.textContent = Math.floor(diff / 86400) + 'd ago';
+    }
+  }
+  setInterval(updateTimestamps, 15000);
+
+  function autoResize() {
+    messageInput.style.height = '38px';
+    var h = messageInput.scrollHeight;
+    if (h > 38) messageInput.style.height = Math.min(h, 90) + 'px';
+  }
+  messageInput.addEventListener('input', autoResize);
+
+  function setSending(sending) {
+    sendButton.disabled = sending;
+    sendButton.textContent = sending ? '\u2026' : 'Send';
+  }
+
+  function xhrRequest(method, url, headers, body, onDone) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    for (var k in headers) {
+      if (Object.prototype.hasOwnProperty.call(headers, k)) {
+        xhr.setRequestHeader(k, headers[k]);
+      }
+    }
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) onDone(xhr.status, xhr.responseText);
+    };
+    xhr.onerror = function () { onDone(0, ''); };
+    xhr.send(body ? JSON.stringify(body) : null);
+  }
+
+  function send() {
+    var text = messageInput.value.trim();
+    if (!text) return;
+
+    var key = (localStorage.getItem(STORAGE_KEY) || '').trim();
+    if (!key) { 
+      settingsOverlay.classList.add('open'); 
+      return; 
+    }
+
+    var model = (localStorage.getItem(MODEL_KEY) || '').trim() || DEFAULT_MODEL;
+    var chat = getCurrentChat();
+    if (!chat) {
+      startNewChat();
+      chat = getCurrentChat();
+    }
+
+    addMessage(text, 'user', Date.now(), true);
+    
+    messageInput.value = '';
+    autoResize();
+    setSending(true);
+
+    var typing = addTyping();
+
+    var referer = location.protocol + '//' + location.host;
+    if (referer.indexOf('http') !== 0) { referer = 'https://openrouter.ai'; }
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + key,
+      'HTTP-Referer': referer,
+      'X-Title': 'AeroGPT'
+    };
+    
+    // Build context from history
+    var apiMessages = chat.messages.map(function(m) {
+      return { role: m.role, content: m.content };
+    });
+    // We already pushed the user message above, so it's included.
+    // But we need to remove the AI's typing placeholder from context (handled naturally).
+
+    var body = {
+      model: model,
+      messages: apiMessages,
+      temperature: 0.7
+    };
+
+    xhrRequest('POST', API_URL, headers, body, function (status, responseText) {
+      removeNode(typing);
+      setSending(false);
+
+      if (status === 0) {
+        addMessage('Network error. If you are in a region with internet restrictions (like Iran), OpenRouter may be blocked. A VPN/Proxy is required.', 'bot', Date.now(), true);
+        return;
+      }
+      var data = null;
+      try { data = JSON.parse(responseText); } catch (e) {}
+      
+      if (status < 200 || status >= 300 || (data && data.error)) {
+        var msg = 'HTTP ' + status;
+        if (data && data.error) {
+          if (data.error.metadata && data.error.metadata.raw) {
+            msg = data.error.metadata.raw;
+          } else if (data.error.message) {
+            msg = data.error.message;
+          }
+        }
+        addMessage('Error: ' + msg, 'bot', Date.now(), true);
+        return;
+      }
+      
+      var reply = data && data.choices && data.choices[0] &&
+                  data.choices[0].message && data.choices[0].message.content;
+      if (!reply) {
+        addMessage('Error: empty response from model.', 'bot', Date.now(), true);
+      } else {
+        addMessage(reply.trim(), 'bot', Date.now(), true);
+      }
+    });
+  }
+
+  sendButton.addEventListener('click', send);
+  messageInput.addEventListener('keydown', function (e) {
+    var code = e.keyCode || e.which;
+    if (code === 13 && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  });
+
+  /* ---------- MODELS ---------- */
+  function isFreeModel(pricing) {
+    if (!pricing) return false;
+    var p = parseFloat(pricing.prompt || '0');
+    var c = parseFloat(pricing.completion || '0');
+    return p === 0 && c === 0;
+  }
+
+  function categorizeModel(pricing) {
+    var out = parseFloat((pricing && pricing.completion) || '0') * 1000000;
+    if (out < 0.50) return { label: 'little',  css: 'cat-little' };
+    if (out < 2.00) return { label: 'low',     css: 'cat-low' };
+    if (out < 10.00) return { label: 'mid',    css: 'cat-mid' };
+    if (out < 30.00) return { label: 'high',   css: 'cat-high' };
+    return { label: 'extreme', css: 'cat-extreme' };
+  }
+
+  function fmtPrice(pricing) {
+    if (!pricing) return '';
+    if (isFreeModel(pricing)) return 'free';
+    var out = parseFloat(pricing.completion || '0') * 1000000;
+    var inP = parseFloat(pricing.prompt || '0') * 1000000;
+    if (out > 0 && inP > 0) return '$' + out.toFixed(2) + '/M';
+    if (out > 0) return '$' + out.toFixed(2) + '/M out';
+    return '$' + inP.toFixed(2) + '/M in';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function updateModelBar(modelId) {
+    var models = getCachedModels();
+    var found = null;
+    for (var i = 0; i < models.length; i++) {
+      if (models[i].id === modelId) { found = models[i]; break; }
+    }
+    if (found && isFreeModel(found.pricing)) {
+      currentModelLabel.textContent = modelId + ' \u00b7 free';
+    } else {
+      currentModelLabel.textContent = modelId;
+    }
+    if (found) {
+      var cat = categorizeModel(found.pricing);
+      currentCat.textContent = cat.label;
+      currentCat.className = 'model-bar-cat ' + cat.css;
+    } else {
+      currentCat.textContent = 'mid';
+      currentCat.className = 'model-bar-cat cat-mid';
+    }
+  }
+
+  function getCachedModels() {
+    try {
+      var raw = localStorage.getItem(MODELS_CACHE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function cacheModels(models) {
+    try {
+      localStorage.setItem(MODELS_CACHE_KEY, JSON.stringify(models));
+      localStorage.setItem(MODELS_CACHE_TIME, String(Date.now()));
+    } catch (e) {}
+  }
+
+  function cacheIsStale() {
+    var t = parseInt(localStorage.getItem(MODELS_CACHE_TIME) || '0', 10);
+    return (Date.now() - t) > CACHE_TTL;
+  }
+
+  function renderModelList(models, selectedId) {
+    var freeOnly = localStorage.getItem(FREE_KEY) !== 'false';
+
+    var filtered = models;
+    if (freeOnly) {
+      filtered = [];
+      for (var i = 0; i < models.length; i++) {
+        if (isFreeModel(models[i].pricing)) filtered.push(models[i]);
+      }
+    }
+
+    if (!filtered.length) {
+      modelList.innerHTML = freeOnly
+        ? '<div class="model-empty">No free models right now.<br>Turn off &ldquo;Show free models only&rdquo; to see all models.</div>'
+        : '<div class="model-loading">No models loaded.</div>';
+      return;
+    }
+
+    var html = '';
+    for (var k = 0; k < filtered.length; k++) {
+      var m = filtered[k];
+      var cat = categorizeModel(m.pricing);
+      var sel = m.id === selectedId ? ' selected' : '';
+      html += '<div class="model-row' + sel + '" data-id="' + escapeHtml(m.id) + '">';
+      html +=   '<div class="model-row-name">' + escapeHtml(m.name || m.id);
+      html +=     '<span class="model-row-id">' + escapeHtml(m.id) + '</span>';
+      html +=   '</div>';
+      html +=   '<span class="model-bar-cat ' + cat.css + '" style="font-size:9px;padding:1px 6px;">' + cat.label + '</span>';
+      html +=   '<span class="model-row-price">' + fmtPrice(m.pricing) + '</span>';
+      html += '</div>';
+    }
+    modelList.innerHTML = html;
+
+    var rows = modelList.querySelectorAll('.model-row');
+    for (var j = 0; j < rows.length; j++) {
+      rows[j].addEventListener('click', function () {
+        var id = this.getAttribute('data-id');
+        localStorage.setItem(MODEL_KEY, id);
+        modelInput.value = id;
+        updateModelBar(id);
+        closeModelPicker();
+      });
+    }
+  }
+
+  function fetchModels(forceRefresh) {
+    var cached = getCachedModels();
+    var selectedId = localStorage.getItem(MODEL_KEY) || DEFAULT_MODEL;
+
+    if (!forceRefresh && cached.length && !cacheIsStale()) {
+      renderModelList(cached, selectedId);
+      return;
+    }
+
+    modelList.innerHTML = '<div class="model-loading">Loading models&hellip;</div>';
+
+    xhrRequest('GET', MODELS_URL, {}, null, function (status, responseText) {
+      if (status >= 200 && status < 300) {
+        try {
+          var data = JSON.parse(responseText);
+          var models = data.data || [];
+          cacheModels(models);
+          renderModelList(models, selectedId);
+          updateModelBar(selectedId);
+          return;
+        } catch (e) {}
+      }
+
+      var fallback = getCachedModels();
+      if (fallback.length) {
+        renderModelList(fallback, selectedId);
+      } else {
+        modelList.innerHTML = '<div class="model-loading">'
+          + (status === 0 ? 'Network error. Your internet may be blocking OpenRouter.' : 'Failed to load models.')
+          + '</div>';
+      }
+    });
+  }
+
+  function openModelPicker() {
+    modelPicker.classList.add('open');
+    fetchModels(false);
+    setTimeout(function () {
+      var sel = modelList.querySelector('.model-row.selected');
+      if (sel && sel.scrollIntoView) sel.scrollIntoView(false);
+    }, 100);
+  }
+  function closeModelPicker() {
+    modelPicker.classList.remove('open');
+  }
+
+  modelBar.addEventListener('click', openModelPicker);
+  modelPicker.addEventListener('click', function (e) {
+    if (e.target === modelPicker) closeModelPicker();
+  });
+  refreshModels.addEventListener('click', function (e) {
+    e.stopPropagation();
+    fetchModels(true);
+  });
+
+  if (localStorage.getItem(FREE_KEY) === 'false') {
+    freeOnlyToggle.classList.remove('on');
+  } else {
+    freeOnlyToggle.classList.add('on');
+    if (localStorage.getItem(FREE_KEY) === null) {
+      localStorage.setItem(FREE_KEY, 'true');
+    }
+  }
+
+  freeOnlyToggle.addEventListener('click', function () {
+    var nowOn = !freeOnlyToggle.classList.contains('on');
+    if (nowOn) {
+      freeOnlyToggle.classList.add('on');
+      localStorage.setItem(FREE_KEY, 'true');
+    } else {
+      freeOnlyToggle.classList.remove('on');
+      localStorage.setItem(FREE_KEY, 'false');
+    }
+    renderModelList(getCachedModels(), localStorage.getItem(MODEL_KEY) || DEFAULT_MODEL);
+  });
+
+  /* ---------- INIT ---------- */
+  (function init() {
+    var savedModel = localStorage.getItem(MODEL_KEY) || DEFAULT_MODEL;
+    updateModelBar(savedModel);
+
+    if (chats.length === 0) {
+      startNewChat();
+    } else {
+      // Load most recent or last active chat
+      var found = false;
+      if (currentChatId) {
+        for (var i = 0; i < chats.length; i++) {
+          if (chats[i].id === currentChatId) { found = true; break; }
+        }
+      }
+      if (!found) currentChatId = chats[0].id;
+      loadChat(currentChatId);
+    }
+
+    if (!getCachedModels().length || cacheIsStale()) {
+      xhrRequest('GET', MODELS_URL, {}, null, function (status, responseText) {
+        if (status >= 200 && status < 300) {
+          try {
+            var data = JSON.parse(responseText);
+            cacheModels(data.data || []);
+            updateModelBar(localStorage.getItem(MODEL_KEY) || DEFAULT_MODEL);
+          } catch (e) {}
+        }
+      });
+    }
+
+    if (!(localStorage.getItem(STORAGE_KEY) || '').trim()) {
+      setTimeout(function() {
+        settingsOverlay.classList.add('open');
+      }, 500);
+    }
+    
+    setTimeout(scrollToBottom, 100);
+  })();
+})();
+</script>
+</body>
+</html>
